@@ -1,13 +1,14 @@
 import { useState, useRef } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { ConfigProvider, Layout, Menu, Typography, theme } from 'antd';
-import { AppstoreOutlined, DashboardOutlined } from '@ant-design/icons';
+import { AppstoreOutlined, DashboardOutlined, FileTextOutlined } from '@ant-design/icons';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
+import OCRPage from './pages/OCRPage';
 
 const { Header, Sider, Content } = Layout;
-const { Title, Paragraph } = Typography;
+const { Title } = Typography;
 
 function Box(props: any) {
   const mesh = useRef<THREE.Mesh>(null!);
@@ -15,8 +16,10 @@ function Box(props: any) {
   const [active, setActive] = useState(false);
 
   useFrame((_, delta) => {
-    mesh.current.rotation.x += delta * 0.5;
-    mesh.current.rotation.y += delta * 0.5;
+    if (mesh.current) {
+      mesh.current.rotation.x += delta * 0.5;
+      mesh.current.rotation.y += delta * 0.5;
+    }
   });
 
   return (
@@ -36,7 +39,7 @@ function Box(props: any) {
 
 function DashboardScene() {
   return (
-    <div className="h-full w-full rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-black relative shadow-2xl shadow-indigo-500/20">
+    <div className="h-full w-full rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-black relative shadow-2xl shadow-indigo-500/20 min-h-[600px]">
       <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
         <ambientLight intensity={0.5} />
         <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} decay={0} intensity={Math.PI} />
@@ -58,20 +61,67 @@ function DashboardScene() {
   );
 }
 
-function Tools() {
+function AppLayout() {
+  const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+
+  const menuItems = [
+    {
+      key: 'sub1',
+      icon: <AppstoreOutlined />,
+      label: 'Document Tools',
+      children: [
+        {
+          key: '/ocr',
+          icon: <FileTextOutlined />,
+          label: <Link to="/ocr">OCR Extract</Link>,
+        }
+      ]
+    },
+    {
+      key: 'sub2',
+      icon: <DashboardOutlined />,
+      label: '3D Tools',
+      children: [
+        {
+          key: '/',
+          label: <Link to="/">Dashboard</Link>,
+        }
+      ]
+    }
+  ];
+
   return (
-    <div className="p-8">
-      <Title level={2}>Life Tools</Title>
-      <Paragraph>
-        Welcome to your collection of life tools. Select a dashboard to begin.
-      </Paragraph>
-    </div>
+    <Layout className="min-h-screen">
+      <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} className="border-r border-gray-800" width={240}>
+        <div className="h-16 flex items-center justify-center font-bold text-xl text-white tracking-widest bg-black/20">
+          {collapsed ? 'LT' : 'LIFE TOOLS'}
+        </div>
+        <Menu
+          theme="dark"
+          selectedKeys={[location.pathname]}
+          defaultOpenKeys={['sub1', 'sub2']}
+          mode="inline"
+          items={menuItems}
+        />
+      </Sider>
+
+      <Layout>
+        <Header className="bg-[#141414] border-b border-gray-800 px-8 flex items-center">
+          <Title level={4} className="!mb-0 !text-gray-200 font-medium">Platform Overview</Title>
+        </Header>
+        <Content className="p-6 bg-[#0a0a0a]">
+          <Routes>
+            <Route path="/" element={<DashboardScene />} />
+            <Route path="/ocr" element={<OCRPage />} />
+          </Routes>
+        </Content>
+      </Layout>
+    </Layout>
   );
 }
 
 function App() {
-  const [collapsed, setCollapsed] = useState(false);
-
   return (
     <ConfigProvider
       theme={{
@@ -84,42 +134,7 @@ function App() {
       }}
     >
       <BrowserRouter>
-        <Layout className="min-h-screen">
-          <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} className="border-r border-gray-800">
-            <div className="h-16 flex items-center justify-center font-bold text-xl text-white tracking-widest bg-black/20">
-              {collapsed ? 'LT' : 'LIFE TOOLS'}
-            </div>
-            <Menu
-              theme="dark"
-              defaultSelectedKeys={['1']}
-              mode="inline"
-              items={[
-                {
-                  key: '1',
-                  icon: <DashboardOutlined />,
-                  label: <Link to="/">Dashboard</Link>,
-                },
-                {
-                  key: '2',
-                  icon: <AppstoreOutlined />,
-                  label: <Link to="/tools">Tools</Link>,
-                },
-              ]}
-            />
-          </Sider>
-
-          <Layout>
-            <Header className="bg-transparent backdrop-blur-md border-b border-gray-800 px-8 flex items-center">
-              <Title level={4} className="!mb-0 !text-gray-200 font-medium">Platform Overview</Title>
-            </Header>
-            <Content className="p-6 bg-[#141414]">
-              <Routes>
-                <Route path="/" element={<DashboardScene />} />
-                <Route path="/tools" element={<Tools />} />
-              </Routes>
-            </Content>
-          </Layout>
-        </Layout>
+        <AppLayout />
       </BrowserRouter>
     </ConfigProvider>
   );
