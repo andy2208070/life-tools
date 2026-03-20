@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { ConfigProvider, Layout, Menu, Typography, theme } from 'antd';
-import { AppstoreOutlined, DashboardOutlined, FileTextOutlined } from '@ant-design/icons';
+import { AppstoreOutlined, DashboardOutlined, FileTextOutlined, ExperimentOutlined } from '@ant-design/icons';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 import OCRPage from './pages/OCRPage';
+import ModelPreviewPage from './pages/ModelPreviewPage';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -67,6 +68,11 @@ function AppLayout() {
 
   const menuItems = [
     {
+      key: '/',
+      icon: <DashboardOutlined />,
+      label: <Link to="/">Dashboard</Link>
+    },
+    {
       key: 'sub1',
       icon: <AppstoreOutlined />,
       label: 'Document Tools',
@@ -80,12 +86,12 @@ function AppLayout() {
     },
     {
       key: 'sub2',
-      icon: <DashboardOutlined />,
+      icon: <ExperimentOutlined />,
       label: '3D Tools',
       children: [
         {
-          key: '/',
-          label: <Link to="/">Dashboard</Link>,
+          key: '/model-viewer',
+          label: <Link to="/model-viewer">Model Viewer</Link>,
         }
       ]
     }
@@ -114,6 +120,7 @@ function AppLayout() {
           <Routes>
             <Route path="/" element={<DashboardScene />} />
             <Route path="/ocr" element={<OCRPage />} />
+            <Route path="/model-viewer" element={<ModelPreviewPage />} />
           </Routes>
         </Content>
       </Layout>
