@@ -54,7 +54,13 @@ export default function OCRPage() {
         setResultText('');
 
         try {
-            const worker = await Tesseract.createWorker(language, 1, {
+            // If the user selects Vertical Layout, utilize the "_vert" trained models for better CJK extraction
+            let actualLang = language;
+            if (Number(orientationMode) === 5) {
+                actualLang = actualLang.replace('chi_tra', 'chi_tra_vert').replace('chi_sim', 'chi_sim_vert');
+            }
+
+            const worker = await Tesseract.createWorker(actualLang, 1, {
                 logger: (m) => {
                     if (m.status === 'recognizing text') {
                         setProgress({ status: 'Recognizing text...', progress: Math.round(m.progress * 100) });
@@ -69,7 +75,14 @@ export default function OCRPage() {
             });
 
             const { data: { text } } = await worker.recognize(imageFile);
-            setResultText(text);
+
+            // Clean up excessive spacing inserted by Tesseract between double-byte (CJK) characters
+            let cleanedText = text.replace(/([^\x00-\x7F])\s+(?=[^\x00-\x7F])/g, '$1');
+
+            // Re-run sequentially for any overlapped spacing logic if Tesseract outputs double spacing
+            cleanedText = cleanedText.replace(/([^\x00-\x7F])\s+(?=[^\x00-\x7F])/g, '$1');
+
+            setResultText(cleanedText);
             await worker.terminate();
         } catch (error) {
             console.error(error);
@@ -106,7 +119,7 @@ export default function OCRPage() {
                             </p>
                             <p className="ant-upload-text text-gray-300">Click or drag image to this area to upload</p>
                             <p className="ant-upload-hint text-gray-500">
-                                Supports common image formats like PNG, JPG, JPEG.
+                                Supports common image formats like PNG, JPG, JPEG. (Ctrl+V Paste supported)
                             </p>
                         </Dragger>
 
