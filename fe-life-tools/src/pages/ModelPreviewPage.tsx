@@ -773,9 +773,6 @@ export default function ModelPreviewPage() {
         .filter(id => objectMap.has(id))
         .map(id => objectMap.get(id)!);
 
-    // ── active Sketchfab embed (selected + visible sf layer) ──────────────────
-    const activeSfLayer = sfLayers.find(s => s.id === selectedId && s.visible)
-        ?? sfLayers.find(s => s.visible); // fallback: first visible sf layer if any sf is selected
 
     // Only show overlay when the selected item IS a sf layer
     const showSfOverlay = selectedId !== 'model'
